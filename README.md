@@ -102,6 +102,5 @@ Didistribusikan di bawah Lisensi MIT. Lihat `LICENSE` untuk informasi lebih lanj
 
 ## Kontak
 
-Faiz Abhinaya - [@faizabhinaya](https://github.com/faizabhinaya)
 
 Link Proyek: [https://github.com/faizabhinaya/myMovieList2](https://github.com/faizabhinaya/myMovieList2)
