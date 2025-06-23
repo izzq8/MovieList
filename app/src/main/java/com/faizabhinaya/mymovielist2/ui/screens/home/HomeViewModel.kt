@@ -21,7 +21,6 @@ class HomeViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
-                val nowPlayingDeferred = async { movieRepository.getNowPlayingMovies() }
                 val popularDeferred = async { movieRepository.getPopularMovies() }
                 val topRatedDeferred = async { movieRepository.getTopRatedMovies() }
                 val upcomingDeferred = async { movieRepository.getUpcomingMovies() }
@@ -32,7 +31,6 @@ class HomeViewModel : ViewModel() {
                 val japaneseDeferred = async { movieRepository.getJapaneseMovies() }
 
                 val categories = mapOf(
-                    MovieCategory.NOW_PLAYING to nowPlayingDeferred.await().results,
                     MovieCategory.POPULAR to popularDeferred.await().results,
                     MovieCategory.TOP_RATED to topRatedDeferred.await().results,
                     MovieCategory.UPCOMING to upcomingDeferred.await().results,
@@ -88,7 +86,6 @@ class HomeViewModel : ViewModel() {
 }
 
 enum class MovieCategory(val title: String) {
-    NOW_PLAYING("Now Playing"),
     POPULAR("Popular Movies"),
     TOP_RATED("Top Rated"),
     UPCOMING("Coming Soon"),

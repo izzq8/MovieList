@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -9,9 +12,9 @@ plugins {
 
 // Load API keys
 val apiKeysPropertiesFile = rootProject.file("apikeys.properties")
-val apiKeysProperties = java.util.Properties()
+val apiKeysProperties = Properties()
 if (apiKeysPropertiesFile.exists()) {
-    apiKeysProperties.load(java.io.FileInputStream(apiKeysPropertiesFile))
+    apiKeysProperties.load(FileInputStream(apiKeysPropertiesFile))
 } else {
     apiKeysProperties["TMDB_API_KEY"] = System.getenv("TMDB_API_KEY") ?: ""
 }
@@ -94,6 +97,9 @@ dependencies {
     // ViewModel
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+
+    // DataStore for user preferences
+    implementation("androidx.datastore:datastore-preferences:1.0.0")
 
     // Splash screen API
     implementation("androidx.core:core-splashscreen:1.0.1")
