@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,6 +31,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.faizabhinaya.mymovielist2.R
 import com.faizabhinaya.mymovielist2.data.model.Cast
 import com.faizabhinaya.mymovielist2.data.model.Genre
 import com.faizabhinaya.mymovielist2.utils.Constants
@@ -53,7 +55,7 @@ fun MovieDetailScreen(
                 title = { Text(uiState.movieDetails?.title ?: "") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
+                        Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 },
                 actions = {
@@ -67,7 +69,9 @@ fun MovieDetailScreen(
                         }) {
                             Icon(
                                 imageVector = if (uiState.isInWatchlist) Icons.Filled.Favorite else Icons.Outlined.FavoriteBorder,
-                                contentDescription = if (uiState.isInWatchlist) "Remove from Watchlist" else "Add to Watchlist"
+                                contentDescription = if (uiState.isInWatchlist)
+                                    stringResource(R.string.remove_from_watchlist) else
+                                    stringResource(R.string.add_to_watchlist)
                             )
                         }
                     }
@@ -217,7 +221,7 @@ fun MovieDetailScreen(
 
                             // Overview
                             Text(
-                                text = "Overview",
+                                text = stringResource(R.string.overview),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -225,7 +229,7 @@ fun MovieDetailScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = movieDetails.overview ?: "No overview available",
+                                text = movieDetails.overview ?: stringResource(R.string.no_overview_available),
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
@@ -233,7 +237,7 @@ fun MovieDetailScreen(
 
                             // Cast
                             Text(
-                                text = "Cast",
+                                text = stringResource(R.string.cast),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -242,7 +246,7 @@ fun MovieDetailScreen(
 
                             if (movieDetails.credits?.cast.isNullOrEmpty()) {
                                 Text(
-                                    text = "Cast information not available",
+                                    text = stringResource(R.string.cast_information_not_available),
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             } else {

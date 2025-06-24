@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Daftar Film Saya</string>
+    <string name="change_language">Ubah Bahasa</string>
+    <string name="language_settings">Pengaturan Bahasa</string>
+    <string name="select_language">Pilih Bahasa</string>
+    <string name="indonesian">Bahasa Indonesia</string>
+    <string name="english">Bahasa Inggris</string>
+
+    <!-- Movie Detail Screen -->
+    <string name="back">Kembali</string>
+    <string name="add_to_watchlist">Tambah ke Watchlist</string>
+    <string name="remove_from_watchlist">Hapus dari Watchlist</string>
+    <string name="rating">Peringkat</string>
+    <string name="overview">Ringkasan</string>
+    <string name="genres">Genre</string>
+    <string name="cast">Pemeran</string>
+    <string name="release_date">Tanggal Rilis: %1$s</string>
+    <string name="loading">Memuat...</string>
+    <string name="error_loading">Terjadi kesalahan saat memuat data</string>
+</resources>
