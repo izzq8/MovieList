@@ -30,13 +30,20 @@ fun SearchScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
+    val context = LocalContext.current
+    var history by remember { mutableStateOf(SearchHistoryManager.getHistory(context)) }
+
+    fun refreshHistory() {
+        history = SearchHistoryManager.getHistory(context)
+    }
+
+    var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.Top,
-                // Remove any default spacing from column
             ) {
                 TopAppBar(
                     title = {
@@ -51,21 +58,21 @@ fun SearchScreen(
                         containerColor = MaterialTheme.colorScheme.background
                     ),
                     windowInsets = WindowInsets(0),
-                    // Reduce bottom padding to minimum
                     modifier = Modifier.padding(bottom = 0.dp)
                 )
-                // SearchBar moved into topBar with negative top margin to move it up
                 SearchBar(
                     query = searchQuery,
                     onQueryChange = { searchQuery = it },
                     onSearch = {
                         viewModel.searchMovies(it)
+                        SearchHistoryManager.saveQuery(context, it)
+                        refreshHistory()
+                        isSearchActive = false
                     },
-                    active = false,
-                    onActiveChange = { },
+                    active = isSearchActive,
+                    onActiveChange = { isSearchActive = it },
                     modifier = Modifier
                         .fillMaxWidth()
-                        // Apply negative top margin to move the SearchBar up
                         .offset(y = (-32).dp)
                         .padding(horizontal = 8.dp, vertical = 0.dp),
                     placeholder = { Text("Search for movies...") },
@@ -81,7 +88,53 @@ fun SearchScreen(
                         }
                     }
                 ) {
-                    // Empty content as we're using the search bar in inactive mode
+                    if (isSearchActive && searchQuery.isEmpty() && history.isNotEmpty()) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(
+                                text = "Recent Searches",
+                                style = MaterialTheme.typography.labelLarge,
+                                modifier = Modifier.padding(8.dp)
+                            )
+                            history.forEach { item ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            searchQuery = item
+                                            viewModel.searchMovies(item)
+                                            SearchHistoryManager.saveQuery(context, item)
+                                            refreshHistory()
+                                            isSearchActive = false
+                                        }
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Search, contentDescription = null)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(
+                                        text = item,
+                                        modifier = Modifier.weight(1f),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    IconButton(onClick = {
+                                        SearchHistoryManager.removeQuery(context, item)
+                                        refreshHistory()
+                                    }) {
+                                        Icon(Icons.Default.Clear, contentDescription = "Remove")
+                                    }
+                                }
+                            }
+                            if (history.isNotEmpty()) {
+                                TextButton(onClick = {
+                                    SearchHistoryManager.clearHistory(context)
+                                    refreshHistory()
+                                }, modifier = Modifier.align(Alignment.End)) {
+                                    Text("Clear All")
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -91,8 +144,6 @@ fun SearchScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Removed SearchBar from here since it's now in the topBar
-
             // Konten hasil pencarian
             if (uiState.isLoading) {
                 Box(
