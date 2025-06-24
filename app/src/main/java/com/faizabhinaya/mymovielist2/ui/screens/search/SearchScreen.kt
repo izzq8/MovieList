@@ -21,6 +21,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.faizabhinaya.mymovielist2.data.model.Movie
 import com.faizabhinaya.mymovielist2.utils.Constants
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,10 +32,17 @@ fun SearchScreen(
     val uiState by viewModel.uiState.collectAsState()
     var searchQuery by remember { mutableStateOf("") }
     val context = LocalContext.current
-    var history by remember { mutableStateOf(SearchHistoryManager.getHistory(context)) }
+    val coroutineScope = rememberCoroutineScope()
+    var history by remember { mutableStateOf(listOf<String>()) }
 
     fun refreshHistory() {
-        history = SearchHistoryManager.getHistory(context)
+        coroutineScope.launch {
+            history = SearchHistoryFirestoreManager.getHistory()
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        refreshHistory()
     }
 
     var isSearchActive by remember { mutableStateOf(false) }
@@ -65,8 +73,10 @@ fun SearchScreen(
                     onQueryChange = { searchQuery = it },
                     onSearch = {
                         viewModel.searchMovies(it)
-                        SearchHistoryManager.saveQuery(context, it)
-                        refreshHistory()
+                        coroutineScope.launch {
+                            SearchHistoryFirestoreManager.saveQuery(it)
+                            refreshHistory()
+                        }
                         isSearchActive = false
                     },
                     active = isSearchActive,
@@ -102,8 +112,10 @@ fun SearchScreen(
                                         .clickable {
                                             searchQuery = item
                                             viewModel.searchMovies(item)
-                                            SearchHistoryManager.saveQuery(context, item)
-                                            refreshHistory()
+                                            coroutineScope.launch {
+                                                SearchHistoryFirestoreManager.saveQuery(item)
+                                                refreshHistory()
+                                            }
                                             isSearchActive = false
                                         }
                                         .padding(horizontal = 16.dp, vertical = 8.dp),
@@ -118,8 +130,10 @@ fun SearchScreen(
                                         overflow = TextOverflow.Ellipsis
                                     )
                                     IconButton(onClick = {
-                                        SearchHistoryManager.removeQuery(context, item)
-                                        refreshHistory()
+                                        coroutineScope.launch {
+                                            SearchHistoryFirestoreManager.removeQuery(item)
+                                            refreshHistory()
+                                        }
                                     }) {
                                         Icon(Icons.Default.Clear, contentDescription = "Remove")
                                     }
@@ -127,8 +141,10 @@ fun SearchScreen(
                             }
                             if (history.isNotEmpty()) {
                                 TextButton(onClick = {
-                                    SearchHistoryManager.clearHistory(context)
-                                    refreshHistory()
+                                    coroutineScope.launch {
+                                        SearchHistoryFirestoreManager.clearHistory()
+                                        refreshHistory()
+                                    }
                                 }, modifier = Modifier.align(Alignment.End)) {
                                     Text("Clear All")
                                 }
