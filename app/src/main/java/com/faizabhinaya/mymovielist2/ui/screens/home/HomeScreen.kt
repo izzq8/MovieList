@@ -41,7 +41,7 @@ fun HomeScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = "My Movie List",
+                        text = "myMovieList",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.Bold
                         )

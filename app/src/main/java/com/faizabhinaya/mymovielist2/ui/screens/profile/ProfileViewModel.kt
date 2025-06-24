@@ -33,21 +33,42 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     private fun loadUserProfile() {
-        val currentUser = authRepository.currentUser
-        if (currentUser != null) {
-            _uiState.update {
-                it.copy(
-                    email = currentUser.email ?: "",
-                    displayName = currentUser.displayName ?: "",
-                    photoUrl = currentUser.photoUrl?.toString() ?: "",
-                    isLoggedIn = true
-                )
-            }
-        } else {
-            _uiState.update {
-                it.copy(
-                    isLoggedIn = false
-                )
+        viewModelScope.launch {
+            val currentUser = authRepository.currentUser
+            if (currentUser != null) {
+                try {
+                    // Ambil data dari Firestore
+                    val userData = authRepository.getUserData()
+                    val photoBase64 = userData?.get("photoBase64") as? String
+
+                    _uiState.update {
+                        it.copy(
+                            email = currentUser.email ?: "",
+                            displayName = currentUser.displayName ?: "",
+                            photoUrl = photoBase64 ?: currentUser.photoUrl?.toString() ?: "",
+                            isLoggedIn = true,
+                            isLoading = false
+                        )
+                    }
+                } catch (e: Exception) {
+                    _uiState.update {
+                        it.copy(
+                            email = currentUser.email ?: "",
+                            displayName = currentUser.displayName ?: "",
+                            photoUrl = currentUser.photoUrl?.toString() ?: "",
+                            isLoggedIn = true,
+                            isLoading = false,
+                            errorMessage = "Failed to load profile data: ${e.message}"
+                        )
+                    }
+                }
+            } else {
+                _uiState.update {
+                    it.copy(
+                        isLoggedIn = false,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
