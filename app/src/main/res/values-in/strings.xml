@@ -1,11 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Daftar Film Saya</string>
-    <string name="change_language">Ubah Bahasa</string>
-    <string name="language_settings">Pengaturan Bahasa</string>
-    <string name="select_language">Pilih Bahasa</string>
-    <string name="indonesian">Bahasa Indonesia</string>
-    <string name="english">Bahasa Inggris</string>
 
     <!-- Movie Detail Screen -->
     <string name="back">Kembali</string>

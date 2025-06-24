@@ -221,7 +221,7 @@ fun MovieDetailScreen(
 
                             // Overview
                             Text(
-                                text = stringResource(R.string.overview),
+                                text = "Overview",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -229,7 +229,7 @@ fun MovieDetailScreen(
                             Spacer(modifier = Modifier.height(8.dp))
 
                             Text(
-                                text = movieDetails.overview ?: stringResource(R.string.no_overview_available),
+                                text = movieDetails.overview ?: "No overview available",
                                 style = MaterialTheme.typography.bodyLarge
                             )
 
@@ -237,7 +237,7 @@ fun MovieDetailScreen(
 
                             // Cast
                             Text(
-                                text = stringResource(R.string.cast),
+                                text = "Cast",
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -246,7 +246,7 @@ fun MovieDetailScreen(
 
                             if (movieDetails.credits?.cast.isNullOrEmpty()) {
                                 Text(
-                                    text = stringResource(R.string.cast_information_not_available),
+                                    text = "Cast information not available",
                                     style = MaterialTheme.typography.bodyMedium
                                 )
                             } else {

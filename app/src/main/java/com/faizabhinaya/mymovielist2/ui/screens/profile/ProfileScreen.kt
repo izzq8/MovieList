@@ -40,7 +40,6 @@ fun ProfileScreen(
     var showEditNameDialog by remember { mutableStateOf(false) }
     var showEditPasswordDialog by remember { mutableStateOf(false) }
     var showDeleteAccountDialog by remember { mutableStateOf(false) }
-    var showLanguageDialog by remember { mutableStateOf(false) }
 
     // Form states
     var nameInput by remember { mutableStateOf("") }
@@ -207,29 +206,6 @@ fun ProfileScreen(
                                 onCheckedChange = { viewModel.updateDarkMode(it) }
                             )
                         }
-                    )
-
-                    HorizontalDivider()
-
-                    // Language selector
-                    ListItem(
-                        headlineContent = { Text("Language") },
-                        leadingContent = {
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Language"
-                            )
-                        },
-                        trailingContent = {
-                            Text(
-                                when(uiState.language) {
-                                    "en" -> "English"
-                                    "id" -> "Bahasa Indonesia"
-                                    else -> "English"
-                                }
-                            )
-                        },
-                        modifier = Modifier.clickable { showLanguageDialog = true }
                     )
                 }
             }
@@ -476,47 +452,6 @@ fun ProfileScreen(
                         showDeleteAccountDialog = false
                         deleteAccountPasswordInput = ""
                     }) {
-                        Text("Cancel")
-                    }
-                }
-            )
-        }
-
-        // Language selection dialog
-        if (showLanguageDialog) {
-            val languages = listOf("en" to "English", "id" to "Bahasa Indonesia")
-            AlertDialog(
-                onDismissRequest = { showLanguageDialog = false },
-                title = { Text("Select Language") },
-                text = {
-                    Column {
-                        languages.forEach { (code, name) ->
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        viewModel.updateLanguage(code)
-                                        showLanguageDialog = false
-                                    }
-                                    .padding(vertical = 12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                RadioButton(
-                                    selected = uiState.language == code,
-                                    onClick = {
-                                        viewModel.updateLanguage(code)
-                                        showLanguageDialog = false
-                                    }
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(name)
-                            }
-                        }
-                    }
-                },
-                confirmButton = {},
-                dismissButton = {
-                    TextButton(onClick = { showLanguageDialog = false }) {
                         Text("Cancel")
                     }
                 }
