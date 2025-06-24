@@ -35,6 +35,10 @@ import com.faizabhinaya.mymovielist2.R
 import com.faizabhinaya.mymovielist2.data.model.Cast
 import com.faizabhinaya.mymovielist2.data.model.Genre
 import com.faizabhinaya.mymovielist2.utils.Constants
+import com.faizabhinaya.mymovielist2.ui.viewmodel.ReviewViewModel
+import com.faizabhinaya.mymovielist2.data.model.MovieReview
+import com.faizabhinaya.mymovielist2.ui.components.MovieListStyleDialog
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -47,6 +51,18 @@ fun MovieDetailScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+
+    // Review ViewModel
+    val reviewViewModel: ReviewViewModel = viewModel()
+    val reviewUiState by reviewViewModel.uiState.collectAsStateWithLifecycle()
+
+    // FIXED: Dialog state dengan nama yang konsisten
+    var showMovieListDialog by remember { mutableStateOf(false) }
+
+    // Load review untuk movie ini
+    LaunchedEffect(movieId) {
+        reviewViewModel.getReviewByMovieId(movieId)
+    }
 
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -132,7 +148,7 @@ fun MovieDetailScreen(
                                 modifier = Modifier.fillMaxSize()
                             )
 
-                            // Overlay for better text visibility
+                            // Overlay supaya better text visibility
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -181,7 +197,7 @@ fun MovieDetailScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Release year and runtime
+                            // Release year & runtime
                             Row(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
@@ -262,6 +278,116 @@ fun MovieDetailScreen(
                                 }
                             }
 
+                            Spacer(modifier = Modifier.height(24.dp))
+
+                            // ENHANCED Review Section
+                            Text(
+                                text = "Your Review",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // ENHANCED Review Card w/ better styling
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { showMovieListDialog = true },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (reviewUiState.currentReview != null) {
+                                        MaterialTheme.colorScheme.primaryContainer
+                                    } else {
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    }
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp)
+                                ) {
+                                    if (reviewUiState.currentReview != null) {
+                                        // Show existing review
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Rating stars
+                                            Row {
+                                                repeat(5) { index ->
+                                                    Icon(
+                                                        imageVector = Icons.Default.Star,
+                                                        contentDescription = null,
+                                                        tint = if (index < (reviewUiState.currentReview?.rating?.toInt() ?: 0)) {
+                                                            Color(0xFFFFD700) // Gold
+                                                        } else {
+                                                            Color.Gray.copy(alpha = 0.3f)
+                                                        },
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.width(8.dp))
+
+                                            Text(
+                                                text = "${reviewUiState.currentReview?.rating?.toInt()}/5",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        }
+
+                                        if (!reviewUiState.currentReview?.review.isNullOrBlank()) {
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = reviewUiState.currentReview?.review ?: "",
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                maxLines = 3,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.height(8.dp))
+                                        Text(
+                                            text = "Tap to edit your review",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    } else {
+                                        // No review yet - ENHANCED styling
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Empty stars preview
+                                            Row {
+                                                repeat(5) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Star,
+                                                        contentDescription = null,
+                                                        tint = Color.Gray.copy(alpha = 0.3f),
+                                                        modifier = Modifier.size(20.dp)
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Column {
+                                                Text(
+                                                    text = "Add a review",
+                                                    style = MaterialTheme.typography.bodyLarge,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                                Text(
+                                                    text = "Hey cinephile, so what do ya think?",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
                             Spacer(modifier = Modifier.height(32.dp))
                         }
                     }
@@ -270,12 +396,41 @@ fun MovieDetailScreen(
         }
     }
 
+    // ENHANCED Dialog dengan delete functionality
+    if (showMovieListDialog) {
+        MovieListStyleDialog(
+            movieId = movieId,
+            movieTitle = uiState.movieDetails?.title ?: "",
+            existingReview = reviewUiState.currentReview,
+            onDismiss = { showMovieListDialog = false },
+            onSaveReview = { review ->
+                reviewViewModel.saveReview(review)
+            },
+            onDeleteReview = {
+                reviewUiState.currentReview?.let { review ->
+                    reviewViewModel.deleteReview(review.id)
+                }
+            }
+        )
+    }
+
     // Show snackbar messages for watchlist actions
     LaunchedEffect(uiState.watchlistActionMessage) {
         uiState.watchlistActionMessage?.let { message ->
             snackbarHostState.showSnackbar(message)
-            // Clear the message after showing
             viewModel.clearWatchlistActionMessage()
+        }
+    }
+
+    // Show snackbar messages for review actions
+    LaunchedEffect(reviewUiState.successMessage, reviewUiState.errorMessage) {
+        reviewUiState.successMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            reviewViewModel.clearMessages()
+        }
+        reviewUiState.errorMessage?.let { message ->
+            snackbarHostState.showSnackbar(message)
+            reviewViewModel.clearMessages()
         }
     }
 }
