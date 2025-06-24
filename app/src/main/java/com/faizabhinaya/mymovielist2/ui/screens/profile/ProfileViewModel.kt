@@ -3,8 +3,10 @@ package com.faizabhinaya.mymovielist2.ui.screens.profile
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.faizabhinaya.mymovielist2.MyMovieListApplication
 import com.faizabhinaya.mymovielist2.data.repository.AuthRepository
 import com.faizabhinaya.mymovielist2.data.repository.UserPreferencesRepository
+import com.faizabhinaya.mymovielist2.ui.theme.ThemeManager
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
@@ -13,6 +15,7 @@ import kotlinx.coroutines.launch
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
     private val authRepository = AuthRepository()
     private val userPreferencesRepository = UserPreferencesRepository(application)
+    private val themeManager = MyMovieListApplication.getInstance().themeManager
 
     private val _uiState = MutableStateFlow(ProfileUiState())
     val uiState: StateFlow<ProfileUiState> = _uiState
@@ -20,6 +23,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     init {
         loadUserProfile()
         loadUserPreferences()
+
+        // Observe theme changes from ThemeManager
+        viewModelScope.launch {
+            themeManager.isDarkMode.collect { isDarkMode ->
+                _uiState.update { it.copy(isDarkMode = isDarkMode) }
+            }
+        }
     }
 
     private fun loadUserProfile() {
@@ -119,7 +129,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
             try {
+                // Update both UserPreferencesRepository and ThemeManager
                 userPreferencesRepository.updateDarkMode(isDarkMode)
+                themeManager.setDarkMode(isDarkMode)
+
                 _uiState.update {
                     it.copy(
                         isDarkMode = isDarkMode,

@@ -9,7 +9,14 @@ import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.view.WindowCompat
+import com.faizabhinaya.mymovielist2.MyMovieListApplication
 
 private val DarkColorScheme = darkColorScheme(
     primary = Purple80,
@@ -35,24 +42,46 @@ private val LightColorScheme = lightColorScheme(
 
 @Composable
 fun MyMovieList2Theme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    // Use system dark theme as fallback
+    darkTheme: Boolean? = null,
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val context = LocalContext.current
+    val themeManager = remember { MyMovieListApplication.getInstance().themeManager }
+
+    // Use the value from ThemeManager, or fall back to the passed darkTheme parameter or system setting
+    val isDarkTheme by themeManager.isDarkMode.collectAsState()
+    val useDarkTheme = darkTheme ?: isDarkTheme
+
+    // Set up status bar colors based on the theme
+    val activity = LocalContext.current as? Activity
+    DisposableEffect(useDarkTheme) {
+        activity?.let {
+            WindowCompat.getInsetsController(it.window, it.window.decorView).apply {
+                isAppearanceLightStatusBars = !useDarkTheme
+                isAppearanceLightNavigationBars = !useDarkTheme
+            }
+        }
+        onDispose {}
+    }
+
     val colorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+            if (useDarkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> DarkColorScheme
+        useDarkTheme -> DarkColorScheme
         else -> LightColorScheme
     }
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalThemeManager provides themeManager
+    ) {
+        MaterialTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            content = content
+        )
+    }
 }
