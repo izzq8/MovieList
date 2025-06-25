@@ -22,6 +22,10 @@ class AuthViewModel : ViewModel() {
         _uiState.update { it.copy(password = password) }
     }
 
+    fun updateDisplayName(displayName: String) {
+        _uiState.update { it.copy(displayName = displayName) }
+    }
+
     fun signIn() {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
@@ -47,14 +51,25 @@ class AuthViewModel : ViewModel() {
     fun signUp() {
         _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-        if (!validateInputs()) {
+        if (!validateSignUpInputs()) {
             _uiState.update { it.copy(isLoading = false) }
             return
         }
 
         viewModelScope.launch {
             try {
-                authRepository.signUp(_uiState.value.email, _uiState.value.password)
+                val user = authRepository.signUp(_uiState.value.email, _uiState.value.password)
+
+                // Update user profile with display name if a user was created
+                if (user != null && _uiState.value.displayName.isNotBlank()) {
+                    try {
+                        authRepository.updateProfile(_uiState.value.displayName, null)
+                    } catch (e: Exception) {
+                        // Log error but don't fail the sign up process
+                        println("Failed to update display name: ${e.message}")
+                    }
+                }
+
                 _uiState.update {
                     it.copy(isLoading = false, isAuthenticated = true)
                 }
@@ -112,6 +127,16 @@ class AuthViewModel : ViewModel() {
         return true
     }
 
+    private fun validateSignUpInputs(): Boolean {
+        if (_uiState.value.email.isBlank() || _uiState.value.password.isBlank() || _uiState.value.displayName.isBlank()) {
+            _uiState.update {
+                it.copy(errorMessage = "Email, password, and display name cannot be empty")
+            }
+            return false
+        }
+        return true
+    }
+
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }
@@ -124,6 +149,7 @@ class AuthViewModel : ViewModel() {
 data class AuthUiState(
     val email: String = "",
     val password: String = "",
+    val displayName: String = "",
     val isLoading: Boolean = false,
     val isAuthenticated: Boolean = false,
     val resetEmailSent: Boolean = false,

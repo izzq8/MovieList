@@ -70,6 +70,19 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(32.dp))
 
                 OutlinedTextField(
+                    value = state.displayName,
+                    onValueChange = { viewModel.updateDisplayName(it) },
+                    label = { Text("Name") },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        imeAction = ImeAction.Next
+                    ),
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                OutlinedTextField(
                     value = state.email,
                     onValueChange = { viewModel.updateEmail(it) },
                     label = { Text("Email") },
