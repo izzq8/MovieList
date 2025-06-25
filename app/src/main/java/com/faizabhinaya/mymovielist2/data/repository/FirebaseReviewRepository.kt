@@ -18,12 +18,35 @@ class FirebaseReviewRepository {
         return auth.currentUser?.uid ?: "anonymous"
     }
 
+    private fun getCurrentUserName(): String? {
+        return auth.currentUser?.displayName
+    }
+
     // Get semua review user saat ini
     fun getAllUserReviews(): Flow<List<MovieReview>> = flow {
         try {
             val userId = getCurrentUserId()
             val snapshot = reviewsCollection
                 .whereEqualTo("userId", userId)
+                .orderBy("dateModified", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val reviews = snapshot.documents.mapNotNull { doc ->
+                doc.data?.let { data ->
+                    MovieReview.fromMap(doc.id, data)
+                }
+            }
+            emit(reviews)
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
+
+    // Get semua review dari semua pengguna
+    fun getAllReviews(): Flow<List<MovieReview>> = flow {
+        try {
+            val snapshot = reviewsCollection
                 .orderBy("dateModified", Query.Direction.DESCENDING)
                 .get()
                 .await()
@@ -63,8 +86,12 @@ class FirebaseReviewRepository {
     // Simpan review baru
     suspend fun saveReview(review: MovieReview): Result<String> {
         return try {
-            val reviewWithUserId = review.copy(userId = getCurrentUserId())
-            val docRef = reviewsCollection.add(reviewWithUserId.toMap()).await()
+            val userName = getCurrentUserName()
+            val reviewWithUserInfo = review.copy(
+                userId = getCurrentUserId(),
+                userName = userName
+            )
+            val docRef = reviewsCollection.add(reviewWithUserInfo.toMap()).await()
             Result.success(docRef.id)
         } catch (e: Exception) {
             Result.failure(e)
@@ -75,8 +102,10 @@ class FirebaseReviewRepository {
     suspend fun updateReview(review: MovieReview): Result<Unit> {
         return try {
             if (review.id.isNotEmpty()) {
+                val userName = getCurrentUserName()
                 val updatedReview = review.copy(
                     userId = getCurrentUserId(),
+                    userName = userName,
                     dateModified = System.currentTimeMillis()
                 )
                 reviewsCollection.document(review.id)
@@ -141,6 +170,47 @@ class FirebaseReviewRepository {
             !snapshot.isEmpty
         } catch (e: Exception) {
             false
+        }
+    }
+
+    // Get semua review untuk movie tertentu dari semua pengguna
+    fun getAllReviewsForMovie(movieId: Int): Flow<List<MovieReview>> = flow {
+        try {
+            val snapshot = reviewsCollection
+                .whereEqualTo("movieId", movieId)
+                .orderBy("dateModified", Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val reviews = snapshot.documents.mapNotNull { doc ->
+                doc.data?.let { data ->
+                    MovieReview.fromMap(doc.id, data)
+                }
+            }
+            emit(reviews)
+        } catch (e: Exception) {
+            emit(emptyList())
+        }
+    }
+
+    // Fungsi debug untuk mengecek raw data dari Firestore
+    suspend fun debugGetAllReviewsRaw(movieId: Int): List<String> {
+        return try {
+            val snapshot = reviewsCollection
+                .whereEqualTo("movieId", movieId)
+                .get()
+                .await()
+
+            snapshot.documents.map { doc ->
+                "ID: ${doc.id}, " +
+                "MovieID: ${doc.getLong("movieId")}, " +
+                "UserID: ${doc.getString("userId")}, " +
+                "UserName: ${doc.getString("userName") ?: "Unknown"}, " +
+                "Rating: ${doc.get("rating")}, " +
+                "Review: ${doc.getString("review")?.take(20)}..."
+            }
+        } catch (e: Exception) {
+            listOf("Error: ${e.message}")
         }
     }
 }

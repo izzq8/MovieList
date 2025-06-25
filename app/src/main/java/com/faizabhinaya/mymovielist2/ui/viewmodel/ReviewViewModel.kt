@@ -154,6 +154,30 @@ class ReviewViewModel(
             it.copy(successMessage = null, errorMessage = null)
         }
     }
+
+    // Fungsi untuk mengambil semua review untuk film tertentu dari semua pengguna
+    fun getAllReviewsByMovieId(movieId: Int) {
+        viewModelScope.launch {
+            try {
+                _uiState.update { it.copy(isLoadingAllReviews = true) }
+                repository.getAllReviewsForMovie(movieId).collect { reviews ->
+                    _uiState.update {
+                        it.copy(
+                            allMovieReviews = reviews,
+                            isLoadingAllReviews = false
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        errorMessage = "Failed to load all reviews: ${e.message}",
+                        isLoadingAllReviews = false
+                    )
+                }
+            }
+        }
+    }
 }
 
 data class ReviewUiState(
@@ -163,5 +187,7 @@ data class ReviewUiState(
     val errorMessage: String? = null,
     val averageRating: Float = 0f,
     val totalReviews: Int = 0,
-    val hasUserReviewedMovie: Boolean = false
+    val hasUserReviewedMovie: Boolean = false,
+    val allMovieReviews: List<MovieReview> = emptyList(),
+    val isLoadingAllReviews: Boolean = false
 )

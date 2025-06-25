@@ -62,6 +62,7 @@ fun MovieDetailScreen(
     // Load review untuk movie ini
     LaunchedEffect(movieId) {
         reviewViewModel.getReviewByMovieId(movieId)
+        reviewViewModel.getAllReviewsByMovieId(movieId)
     }
 
     Scaffold(
@@ -385,6 +386,57 @@ fun MovieDetailScreen(
                                             }
                                         }
                                     }
+                                }
+                            }
+
+                            Spacer(modifier = Modifier.height(32.dp))
+
+                            // All Reviews Section
+                            Text(
+                                text = "All Reviews",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // Display all reviews or loading state
+                            if (reviewUiState.isLoadingAllReviews) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(vertical = 16.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator()
+                                }
+                            } else if (reviewUiState.allMovieReviews.isEmpty()) {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(32.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = "No reviews yet. Be the first to review!",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            textAlign = TextAlign.Center
+                                        )
+                                    }
+                                }
+                            } else {
+                                // Display the reviews
+                                reviewUiState.allMovieReviews.forEach { review ->
+                                    com.faizabhinaya.mymovielist2.ui.components.ReviewItem(
+                                        review = review,
+                                        modifier = Modifier.padding(vertical = 4.dp)
+                                    )
                                 }
                             }
 

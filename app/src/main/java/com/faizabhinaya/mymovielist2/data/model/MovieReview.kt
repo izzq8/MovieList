@@ -7,20 +7,24 @@ data class MovieReview(
     val rating: Float = 0f, // 0.0 - 5.0
     val review: String = "",
     val userId: String = "", // untuk multi-user support
+    val userName: String? = null, // nama pengguna untuk ditampilkan
+    val userPhotoUrl: String? = null, // URL foto profil pengguna
     val dateCreated: Long = System.currentTimeMillis(),
     val dateModified: Long = System.currentTimeMillis()
 ) {
     // Constructor kosong untuk Firebase
-    constructor() : this("", 0, "", 0f, "", "", 0L, 0L)
+    constructor() : this("", 0, "", 0f, "", "", null, null, 0L, 0L)
 
     // Convert ke Map untuk Firebase
-    fun toMap(): Map<String, Any> {
+    fun toMap(): Map<String, Any?> {
         return mapOf(
             "movieId" to movieId,
             "movieTitle" to movieTitle,
             "rating" to rating,
             "review" to review,
             "userId" to userId,
+            "userName" to userName,
+            "userPhotoUrl" to userPhotoUrl,
             "dateCreated" to dateCreated,
             "dateModified" to dateModified
         )
@@ -36,6 +40,8 @@ data class MovieReview(
                 rating = (data["rating"] as? Double)?.toFloat() ?: 0f,
                 review = data["review"] as? String ?: "",
                 userId = data["userId"] as? String ?: "",
+                userName = data["userName"] as? String,
+                userPhotoUrl = data["userPhotoUrl"] as? String,
                 dateCreated = data["dateCreated"] as? Long ?: 0L,
                 dateModified = data["dateModified"] as? Long ?: 0L
             )
